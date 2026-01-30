@@ -10,7 +10,7 @@ app = FastAPI(title="Video Transcription API", version="1.0.0")
 
 # Load Whisper model once at startup
 print("Loading Whisper base model... this may take a moment on first run")
-whisper_model = whisper.load_model("base")
+whisper_model = whisper.load_model("tiny")
 
 class VideoURL(BaseModel):
     url: str
