@@ -74,9 +74,9 @@ def get_youtube_audio_via_rapidapi(video_url: str) -> str:
         
         print(f"Getting MP3 URL for YouTube video ID: {video_id}")
         
-        url = "https://youtube-mp3-audio-video-downloader.p.rapidapi.com/dl"
+        url = "https://youtube-mp3-audio-video-downloader.p.rapidapi.com/get-download-link"
         
-        querystring = {"id": video_id}
+        querystring = {"video_id": video_id, "format": "mp3"}
         
         headers = {
             "x-rapidapi-key": RAPIDAPI_KEY,
@@ -90,10 +90,12 @@ def get_youtube_audio_via_rapidapi(video_url: str) -> str:
         
         data = response.json()
         
-        if 'link' not in data:
-            raise Exception("Could not get download link from API")
+        # The response might have different key names, try common ones
+        mp3_url = data.get('link') or data.get('url') or data.get('download_url') or data.get('mp3_url')
         
-        mp3_url = data['link']
+        if not mp3_url:
+            raise Exception(f"Could not find MP3 URL in response: {data}")
+        
         print(f"Got MP3 URL: {mp3_url}")
         
         return mp3_url
