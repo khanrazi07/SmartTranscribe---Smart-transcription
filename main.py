@@ -32,6 +32,15 @@ def extract_audio_from_video(video_url: str, output_path: str) -> str:
             'outtmpl': output_path,
             'quiet': False,
             'no_warnings': False,
+            'socket_timeout': 30,
+            'http_headers': {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            },
+            'extractor_args': {
+                'youtube': {
+                    'skip': ['webpage']
+                }
+            }
         }
         
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
