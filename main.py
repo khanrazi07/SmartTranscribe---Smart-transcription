@@ -72,17 +72,11 @@ def get_youtube_transcript(video_url: str) -> str:
         video_id = extract_youtube_video_id(video_url)
         print(f"Getting transcript for YouTube video ID: {video_id}")
         
-        # Get transcript - this is the correct method
-        transcript_list = YouTubeTranscriptApi.get_transcripts([video_id])
-        
-        # Get the first available transcript
-        if video_id in transcript_list:
-            transcript_items = transcript_list[video_id]
-        else:
-            raise Exception("No transcripts found for this video")
+        # Correct method: get_transcript (singular, not plural)
+        transcript_list = YouTubeTranscriptApi.get_transcript(video_id)
         
         # Combine all transcript text
-        transcript = " ".join([item['text'] for item in transcript_items])
+        transcript = " ".join([item['text'] for item in transcript_list])
         print(f"Got transcript with {len(transcript)} characters")
         
         return transcript
