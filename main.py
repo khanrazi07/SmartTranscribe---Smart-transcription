@@ -1,16 +1,12 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import yt_dlp
-import whisper
+import speech_recognition as sr
 import os
 import tempfile
 from pathlib import Path
 
 app = FastAPI(title="Video Transcription API", version="1.0.0")
-
-# Load Whisper model once at startup
-print("Loading Whisper base model... this may take a moment on first run")
-whisper_model = whisper.load_model("tiny")
 
 class VideoURL(BaseModel):
     url: str
@@ -30,7 +26,7 @@ def extract_audio_from_video(video_url: str, output_path: str) -> str:
             'format': 'bestaudio/best',
             'postprocessors': [{
                 'key': 'FFmpegExtractAudio',
-                'preferredcodec': 'mp3',
+                'preferredcodec': 'wav',
                 'preferredquality': '192',
             }],
             'outtmpl': output_path,
@@ -42,8 +38,8 @@ def extract_audio_from_video(video_url: str, output_path: str) -> str:
             print(f"Downloading audio from: {video_url}")
             info = ydl.extract_info(video_url, download=True)
             audio_file = ydl.prepare_filename(info)
-            # Convert to mp3 path
-            audio_file = os.path.splitext(audio_file)[0] + '.mp3'
+            # Convert to wav path
+            audio_file = os.path.splitext(audio_file)[0] + '.wav'
             return audio_file
             
     except Exception as e:
@@ -51,14 +47,25 @@ def extract_audio_from_video(video_url: str, output_path: str) -> str:
 
 def transcribe_audio(audio_path: str) -> str:
     """
-    Transcribe audio file using Whisper
+    Transcribe audio file using SpeechRecognition
     Returns the transcript text
     """
     try:
         print(f"Transcribing audio: {audio_path}")
-        result = whisper_model.transcribe(audio_path)
-        transcript = result['text']
-        return transcript
+        recognizer = sr.Recognizer()
+        
+        with sr.AudioFile(audio_path) as source:
+            audio = recognizer.record(source)
+        
+        # Try Google Speech Recognition (free, no API key needed)
+        try:
+            transcript = recognizer.recognize_google(audio)
+            return transcript
+        except sr.UnknownValueError:
+            return "Could not understand the audio"
+        except sr.RequestError as e:
+            raise Exception(f"Speech recognition service error: {str(e)}")
+            
     except Exception as e:
         raise Exception(f"Failed to transcribe audio: {str(e)}")
 
@@ -108,4 +115,5 @@ async def health_check():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8007)
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
