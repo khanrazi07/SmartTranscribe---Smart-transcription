@@ -77,17 +77,12 @@ def get_youtube_transcript(video_url: str) -> str:
             # Try to get transcript in English first
             transcript_list = YouTubeTranscriptApi.get_transcript(video_id, languages=['en'])
         except:
-            # If English not available, get available transcripts
-            print("English transcript not available, trying other languages...")
-            transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
-            
-            # Get first available transcript
-            if transcript_list.manual_transcripts:
-                transcript_list = transcript_list.manual_transcripts[0].fetch()
-            elif transcript_list.generated_transcripts:
-                transcript_list = transcript_list.generated_transcripts[0].fetch()
-            else:
-                raise Exception("No transcripts available for this video")
+            # If English not available, try other languages
+            print("English transcript not available, trying to get any available transcript...")
+            try:
+                transcript_list = YouTubeTranscriptApi.get_transcript(video_id)
+            except Exception as e:
+                raise Exception(f"No transcripts available: {str(e)}")
         
         # Combine all transcript text
         transcript = " ".join([item['text'] for item in transcript_list])
