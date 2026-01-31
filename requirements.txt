@@ -1,7 +1,7 @@
 fastapi
 uvicorn
-youtube-transcript-api  
+youtube-transcript-api
 yt-dlp
-speech_recognition
+SpeechRecognition
 pydantic
 python-multipart
